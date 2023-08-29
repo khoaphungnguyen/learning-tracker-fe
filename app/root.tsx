@@ -10,7 +10,7 @@ import {
 } from "@remix-run/react";
 
 import stylesheet from "~/tailwind.css";
-
+import  Sidebar  from "./components/Sidebar";
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
@@ -25,6 +25,7 @@ export default function App() {
         <Links />
       </head>
       <body>
+        <Sidebar /> 
         <Outlet />
         <ScrollRestoration />
         <Scripts />

@@ -22,13 +22,9 @@ export const action = async ({ request }: ActionArgs) => {
 });
 
 if (!result.ok) {
-
     return json({ error: "Something went wrong" }, { status: 500 });
-
 }
-  
   return redirect("/");
-  //return json({ title, description })
 };
 
 export default function NewEntry() {
@@ -45,6 +41,7 @@ export default function NewEntry() {
             type="text"
             name="title"
             placeholder="Enter title"
+            required
           />
         </div>
         <div>
@@ -56,6 +53,7 @@ export default function NewEntry() {
             name="description"
             rows={4}
             placeholder="Enter description"
+            required
           />
         </div>
         <button

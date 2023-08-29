@@ -1,5 +1,4 @@
-import { useLoaderData } from "@remix-run/react";
-import { Link } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 
 export const loader = async () => {
   const data = await fetch("http://localhost:8000/api/entries");
@@ -26,19 +25,19 @@ export default function Index() {
           <li key={entry.id} className="border p-2 rounded-md">
             <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold"> {entry.title}</h2>
-            <Link to={`/EditEntry?id=${entry.id}`}  className="bg-green-500 text-white rounded-md px-2 py-1 hover:bg-green-600">
-              Edit
-            </Link>
-            </div>
          
+            <Link to={`/EditEntry/${entry.id}`}  className="bg-green-500 text-white rounded-md px-2 py-1 hover:bg-green-600">
+              Edit
+            </Link>     
+            </div>
+            
             <p>{entry.description}</p>
-            <p
+            <p>Status: <span
               className={`text-sm ${
-                entry.status ? 'text-blue-700' : 'text-red-700'
-              }`}
-            >
-              Status: {entry.status ? 'True' : 'False'}
-            </p>
+                entry.status ? 'text-blue-700' : 'text-yellow-400'
+              }`}>
+              {entry.status ? "Done": 'Not Done'}
+            </span></p>
           </li>
         ))}
       </ul>
