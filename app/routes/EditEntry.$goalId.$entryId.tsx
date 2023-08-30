@@ -3,9 +3,9 @@ import { Form, useLoaderData } from "@remix-run/react";
 import { json , redirect} from "@remix-run/node"; 
 
 export let loader: LoaderFunction = async ({ params }) => {
-  const entryId = params.id; // Fetch the entry ID from params
-
-  const response = await fetch(`http://localhost:8000/api/entries?id=${entryId}`);
+  const goalId = params.goalId; // Fetch the goal ID from params
+  const entryId = params.entryId; // Fetch the entry ID from params
+  const response = await fetch(`http://localhost:8000/api/entries?goal-id=${goalId}&entry-id=${entryId}`);
   const entry = await response.json();
   return entry;
 };
@@ -13,15 +13,14 @@ export let loader: LoaderFunction = async ({ params }) => {
 export const action = async ({ request,params }: ActionArgs) => {
   
   const formData = await request.formData();
-  // Extract additional parameters from formData
-  const entryIdString = params.id; // Get the string value from params
-  const entryId = entryIdString ? parseInt(entryIdString, 10) : "";
+  const goalId = params.goalId; // Fetch the goal ID from params
+  const entryId = params.entryId; // Fetch the entry ID from params
   const title = formData.get("title");
   const description = formData.get("description");
   const method = request.method;
-
+  console.log(method);
   if (method === 'DELETE') {
-    const result = await fetch(`http://localhost:8000/api/entries?id=${entryId}`, {
+    const result = await fetch(`http://localhost:8000/api/entries?goal-id=${goalId}&entry-id=${entryId}`, {
       method: 'DELETE',
       headers: {
           'Content-Type': 'application/json'
@@ -31,33 +30,34 @@ export const action = async ({ request,params }: ActionArgs) => {
       })
   });
   if (!result.ok) {
-    return json({ error: "Something went wrong! Could not delete the entry" }, { status: 500 });
+    return json({ error: "Something went wrong" }, { status: 500 });
   }
-    return redirect("/");
+  console.log(result); 
+  return redirect(`/goals/${goalId}`);
   } else if (method === 'PUT') {
-  
-  const result = await fetch(`http://localhost:8000/api/entries?id=${entryId}`, {
+    console.log("PUT");
+    const result = await fetch(`http://localhost:8000/api/entries?goal-id=${goalId}&entry-id=${entryId}`, {
     method: 'PUT',
     headers: {
         'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-        id: entryId,
         title: title,
         description: description,
     })
-});
-
-if (!result.ok) {
-    return json({ error: "Something went wrong" }, { status: 500 });
-}
-  return redirect("/"); 
-
+    });
+   
+    if (!result.ok) {
+        return json({ error: "Something went wrong" }, { status: 500 });
+    }
+    console.log(result);
+    return redirect(`/goals/${goalId}`);
 }
 };
 
 export default function EditEntry() {
     const data = useLoaderData<typeof loader>();
+    
     return (
         <div className='max-w-md mx-auto p-4'>
             <h1 className='text-2xl font-bold mb-4'>Edit Learning Entry #{data.id}</h1>
@@ -73,7 +73,6 @@ export default function EditEntry() {
             name="title"
             defaultValue={data.title}
             placeholder="Enter title"
-
             required
           />
         </div>
@@ -108,7 +107,6 @@ export default function EditEntry() {
             Update
             </button>
             </div>
-           
             </Form>
         </div>
     )

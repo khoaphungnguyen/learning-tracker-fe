@@ -1,5 +1,5 @@
 //import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction ,LoaderFunction} from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -8,12 +8,16 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-
 import stylesheet from "~/tailwind.css";
-import  Sidebar  from "./components/Sidebar";
+import  Layout  from "./components/Layout";
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
+
+export let loader: LoaderFunction = async () => {
+  const data = await fetch("http://localhost:8000/api/goal");
+  return data.json();
+};
 
 export default function App() {
   return (
@@ -25,8 +29,9 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <Sidebar /> 
+        <Layout>
         <Outlet />
+        </Layout>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
