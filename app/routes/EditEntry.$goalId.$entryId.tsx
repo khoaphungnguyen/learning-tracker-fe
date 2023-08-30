@@ -90,6 +90,7 @@ export default function EditEntry() {
             required
           />
             </div>
+
             <div className='flex items-center justify-between'>
             <button
             className="bg-red-500 text-white rounded-md px-4 py-2 hover:bg-red-600"

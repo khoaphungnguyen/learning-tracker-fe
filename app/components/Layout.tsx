@@ -12,7 +12,7 @@ export default function Layout(props: LayoutProps ) {
       <>
      <div className='flex h-screen w-screen flex-row '>
       <Sidebar/>
-      <main className='flex h-screen'>
+      <main className=' h-screen  '>
         <Outlet />
       </main>
      </div>
