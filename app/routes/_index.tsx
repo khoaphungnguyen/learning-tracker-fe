@@ -6,7 +6,12 @@ export default function Index() {
 
   return (
    <div>
-    {data.length > 0 ?" You have goals" : "You have no goals! Please add one"}
+    {data.length > 0 
+    ?
+    <div className="text-xl font-semibold text-center m-10">
+    You have <span className="text-blue-600">{data.length}</span> goals
+    </div>
+    :"You have no goals! Please add one"}
    </div>
   );
 }

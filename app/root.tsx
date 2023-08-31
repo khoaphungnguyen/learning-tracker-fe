@@ -15,7 +15,7 @@ export const links: LinksFunction = () => [
 ];
 
 export let loader: LoaderFunction = async () => {
-  const data = await fetch("http://localhost:8000/api/goal");
+  const data = await fetch("http://localhost:8000/api/goals");
   return data.json();
 };
 
