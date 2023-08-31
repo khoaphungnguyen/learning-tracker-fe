@@ -11,9 +11,9 @@ export default function Sidebar() {
   }
 
   return (
-    <nav className="bg-gray-800 text-white h-screen w-64 p-4 flex flex-col">
+    <nav className="bg-gray-800 text-white  h-screen flex flex-col">
       <div className="flex flex-col flex-grow overflow-y-auto">
-        <ul className="space-y-2">
+        <ul className="space-y-2 m-2">
           {data.map((goal: any) => (
             <li key={goal.id}>
               <NavLink
@@ -34,7 +34,7 @@ export default function Sidebar() {
           ))}
         </ul>
       </div>
-      <div className="mt-auto">
+      <div className="mt-auto my-3 mx-2">
         <NavLink
           to="/NewGoal"
           className="block text-center py-2 px-4 border bg-blue-500 rounded rounded-xl hover:bg-blue-700"

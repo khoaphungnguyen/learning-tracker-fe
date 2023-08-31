@@ -8,7 +8,6 @@ export const action = async ({ request,params }: ActionArgs) => {
   const goalId = params.id; // Fetch the goal ID from params
   const title = formData.get("title");
   const description = formData.get("description");
-  const completionDate = new Date(`${formData.get("completionDate")}T00:00:00Z`).toISOString();
   const result = await fetch(`http://localhost:8000/api/entries/add?goalID=${goalId}`, {
     method: 'POST',
     headers: {
@@ -17,7 +16,6 @@ export const action = async ({ request,params }: ActionArgs) => {
     body: JSON.stringify({
         title: title,
         description: description,
-        date: completionDate
     })
 });
 
@@ -54,17 +52,6 @@ export default function NewEntry() {
             name="description"
             rows={4}
             placeholder="Enter description"
-            required
-          />
-        </div>
-        <div>
-          <label className="block font-semibold text-gray-600" htmlFor="completionDate">
-            Completion Date
-          </label>
-          <input
-            className="w-full border rounded-md px-3 py-2"
-            type="date"
-            name="completionDate"
             required
           />
         </div>

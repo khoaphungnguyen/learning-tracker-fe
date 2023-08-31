@@ -7,15 +7,16 @@ interface LayoutProps {
     
 }
 
-export default function Layout(props: LayoutProps ) {
-    return (
-      <>
-     <div className='flex h-screen w-screen flex-row '>
-      <Sidebar/>
-      <main className=' h-screen  '>
+export default function Layout(props: LayoutProps) {
+  return (
+    <div className='flex h-screen w-screen'>
+      <nav className='flex-shrink-0 w-60  h-screen ' >
+        <Sidebar />
+      </nav>
+
+      <main className='flex-grow overflow-auto'>
         <Outlet />
       </main>
-     </div>
-      </>
-    )
-  }
+    </div>
+  );
+}
