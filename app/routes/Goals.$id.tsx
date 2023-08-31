@@ -11,7 +11,6 @@ export let loader: LoaderFunction = async ({ params }) => {
 export default function Goals() {
   const data = useLoaderData<typeof loader>();
   const {id} = useParams();
-  console.log(data);
   return (
   <div className="max-w-fit mx-auto p-5">
     <div className="flex justify-between justify-items-end items-center space-x-10 mb-8">
