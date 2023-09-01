@@ -21,41 +21,15 @@ export const action = async ({ request,params }: ActionArgs) => {
   const description = formData.get("description");
   const method = request.method;
   const timeNow = new Date();
-  const file = formData.get("attachment");
-  file.append("files", goalId);
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  
-  //   const form = e.target;
-  //   const formData = new FormData(form);
-  
-  //   // Add other form fields to the FormData if needed
-  //   formData.append("title", title);
-  //   formData.append("description", description);
-  
-  //   try {
-  //     const response = await fetch("/api/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
-  
-  //     if (response.ok) {
-  //       toast.success("Entry updated successfully");
-  //     } else {
-  //       toast.error("An error occurred");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   }
-  // };
-  
+  const files = formData.get("files");
+ 
   console.log(method)
   if (method === 'POST') {
+    const formData = new FormData();
+    formData.append('files', files);
     const response = await fetch("http://localhost:8000/api/upload", {
     method: "POST",
-    body: file,
-    });
+    body: formData})
     //console.log(response)
     if (response.ok) {
     toast.success("Entry updated successfully");
@@ -63,9 +37,9 @@ export const action = async ({ request,params }: ActionArgs) => {
     toast.error("An error occurred");
     }
     return null;
+    return null;
   } else if (method === 'DELETE') {
-    const formData = new FormData();
-    formData.append("files", file);
+    
     const result = await fetch(`http://localhost:8000/api/entries?goalID=${goalId}&entryID=${entryId}`, {
       method: 'DELETE',
       headers: {
@@ -106,11 +80,25 @@ export default function EditEntry() {
   const {goalId} = useParams()
   const [selectedFile, setSelectedFile] = useState(null);
   
-
+  const handleSave = async () => {
+    const formData = new FormData();
+    formData.append('files', selectedFile);
+    console.log(selectedFile)
+    const response = await fetch("http://localhost:8000/api/upload", {
+    method: "POST",
+    body: formData})
+    //console.log(response)
+    if (response.ok) {
+    toast.success("Entry updated successfully");
+    } else {
+    toast.error("An error occurred");
+    }
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-md mx-auto bg-white rounded-md shadow-md p-6">
+      <div className="max-w-xl mx-auto bg-white rounded-md shadow-md p-6">
         <div className="mb-6 flex items-center">
           <Link to={`/goals/${goalId}`} className="text-blue-500 hover:underline flex items-center">
             <svg
@@ -156,7 +144,6 @@ export default function EditEntry() {
           id="description"
           name="description"
           defaultValue={data.description}
-         // onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={5}
           className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
           placeholder="Enter description"
@@ -166,11 +153,11 @@ export default function EditEntry() {
       {/* Attachments */}
       <div className="mb-4" >
         <h2 className="text-lg font-semibold mb-2 text-gray-800">Attachments</h2>
-        <div className='flex  justify-between items-center'>
+        <div className='flex  justify-between items-center '>
         <input
           type="file"
-          id="attachment"
-          name="attachment"
+          id="files"
+          name="files"
           onChange={(e) => setSelectedFile(e.target.files[0])}
           className="border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
           accept=".pdf,.doc,.docx,.txt,image/*,.zip,.rar"
@@ -181,7 +168,7 @@ export default function EditEntry() {
         className={`bg-green-500 text-white rounded-md px-4 py-2 ${!selectedFile 
         ? 'opacity-50 cursor-not-allowed' 
         : 'hover:bg-green-600 transition duration-300'}`}     
-        // onClick={handleSave}
+          onClick={handleSave}
         disabled={!selectedFile}
          >
         Save
@@ -192,7 +179,7 @@ export default function EditEntry() {
 
 
       {/* Buttons */}
-      <div className="flex justify-end">
+      <div className="flex justify-end ">
         <button
           className="bg-red-500 text-white rounded-md px-4 py-2 hover:bg-red-600 transition duration-300"
           type="button"
@@ -229,7 +216,6 @@ export default function EditEntry() {
           onClick={() => toast.success('Delete Successfully')}
         >Confirm</button>
         </div>
-        
       </div>
     </div>
   )}
