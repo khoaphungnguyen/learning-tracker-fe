@@ -10,6 +10,8 @@ import {
 } from "@remix-run/react";
 import stylesheet from "~/tailwind.css";
 import  Layout  from "./components/Layout";
+
+
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];

@@ -1,7 +1,9 @@
 import type { LoaderFunction,ActionArgs } from '@remix-run/node';
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData, Link, useParams } from "@remix-run/react";
 import { json , redirect} from "@remix-run/node"; 
-import { useState,useEffect } from "react";
+import { useState } from "react";
+import {toast} from 'react-hot-toast';
+
 
 export let loader: LoaderFunction = async ({ params }) => {
   const goalId = params.goalId; // Fetch the goal ID from params
@@ -11,17 +13,59 @@ export let loader: LoaderFunction = async ({ params }) => {
   return entry;
 };
 
-
 export const action = async ({ request,params }: ActionArgs) => {
   const formData = await request.formData();
   const goalId = params.goalId; // Fetch the goal ID from params
   const entryId = params.entryId; // Fetch the entry ID from params
   const title = formData.get("title");
   const description = formData.get("description");
-  
   const method = request.method;
-  console.log(method);
-  if (method === 'DELETE') {
+  const timeNow = new Date();
+  const file = formData.get("attachment");
+  file.append("files", goalId);
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  
+  //   const form = e.target;
+  //   const formData = new FormData(form);
+  
+  //   // Add other form fields to the FormData if needed
+  //   formData.append("title", title);
+  //   formData.append("description", description);
+  
+  //   try {
+  //     const response = await fetch("/api/upload", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+  
+  //     if (response.ok) {
+  //       toast.success("Entry updated successfully");
+  //     } else {
+  //       toast.error("An error occurred");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   }
+  // };
+  
+  console.log(method)
+  if (method === 'POST') {
+    const response = await fetch("http://localhost:8000/api/upload", {
+    method: "POST",
+    body: file,
+    });
+    //console.log(response)
+    if (response.ok) {
+    toast.success("Entry updated successfully");
+    } else {
+    toast.error("An error occurred");
+    }
+    return null;
+  } else if (method === 'DELETE') {
+    const formData = new FormData();
+    formData.append("files", file);
     const result = await fetch(`http://localhost:8000/api/entries?goalID=${goalId}&entryID=${entryId}`, {
       method: 'DELETE',
       headers: {
@@ -44,121 +88,48 @@ export const action = async ({ request,params }: ActionArgs) => {
     body: JSON.stringify({
         title: title,
         description: description,
+        date: timeNow,
     })
     });
    
     if (!result.ok) {
         return json({ error: "Something went wrong" }, { status: 500 });
     }
-    console.log(result);
     return redirect(`/goals/${goalId}`);
 }
 };
-
-
 
 export default function EditEntry() {
   const data = useLoaderData<typeof loader>();
   // Add a new piece of state for the confirmation modal
   const [showConfirmation, setShowConfirmation] = useState(false);
-  //const [feedback, setFeedback] = useState({ type: '', message: '' });
-  const [toastMessage, setToastMessage] = useState('');
-
-  // Function to handle deleting the entry
-  const handleDelete = async() => {
-    // Perform the deletion action here
-    // ...
-
-    // Close the confirmation modal
-    setShowConfirmation(false);
-    try {
-      await new Promise((resolve, reject) => setTimeout(reject, 1000));
-      setToastMessage('An error occurred while deleting the entry.');
-    } catch (error) {
-      console.error(error);
-      setToastMessage('An error occurred while deleting the entry.');
-    }
-  };
-
-  const handleUpdate = async () => {
-    // Simulate a successful update
-    // Replace this with your actual update logic
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setToastMessage('Entry updated successfully!');
-    } catch (error) {
-      console.error(error);
-      setToastMessage('An error occurred while updating the entry.');
-    }
-  };
-  useEffect(() => {
-    // Clear toast message after 3 seconds
-    const timeout = setTimeout(() => {
-      setToastMessage('');
-    }, 3000);
-
-    return () => clearTimeout(timeout);
-  }, [toastMessage]);
-
-  // const handleUpdateFeedback = async () => {
-  //   // ... Your update logic ...
-
-  //   try {
-  //     // Simulate a successful update
-  //     // Replace this with your actual update logic
-  //     await new Promise(resolve => setTimeout(resolve, 1000));
-  //     setFeedback({ type: 'success', message: 'Entry updated successfully!' });
-  //   } catch (error) {
-  //     console.error(error);
-  //     setFeedback({ type: 'error', message: 'An error occurred while updating the entry.' });
-  //   }
-  // };
-
-
-  // const handleDeleteFeedback = async () => {
-  //   // ... Your delete logic ...
-
-  //   try {
-  //     // Simulate an error during deletion
-  //     // Replace this with your actual delete logic
-  //     await new Promise((resolve, reject) => setTimeout(reject, 1000));
-  //     setFeedback({ type: 'error', message: 'An error occurred while deleting the entry.' });
-  //   } catch (error) {
-  //     console.error(error);
-  //     setFeedback({ type: 'error', message: 'An error occurred while deleting the entry.' });
-  //   }
-  // };
+  const {goalId} = useParams()
+  const [selectedFile, setSelectedFile] = useState(null);
   
 
 
   return (
-    <div className="flex items-start justify-start min-h-screen bg-gray-100 p-6">
-  <div className="max-w-md w-full bg-white rounded-md shadow-md p-6">
-    <h1 className="text-2xl font-bold mb-4 text-gray-800">Edit Learning Entry</h1>
-    <div className="absolute bottom-4 right-4">
-          {toastMessage && (
-            <div className="bg-red-500 text-white rounded-md px-4 py-2 mb-4">
-              {toastMessage}
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-md mx-auto bg-white rounded-md shadow-md p-6">
+        <div className="mb-6 flex items-center">
+          <Link to={`/goals/${goalId}`} className="text-blue-500 hover:underline flex items-center">
+            <svg
+              className="w-4 h-4 mr-1"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M11.293 5.293a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-4 4a1 1 0 0 1-1.414-1.414L14.586 11H4a1 1 0 0 1 0-2h10.586l-2.293-2.293a1 1 0 0 1 0-1.414z"
+              />
+            </svg>
+            Back to All Entries
+          </Link>
         </div>
-    <Form className="space-y-4" method="post">
+        <h1 className="text-3xl font-semibold mb-6 text-gray-800">Edit Learning Entry</h1>
+        <Form className="space-y-4" method="post">
       {/* Entry Details */}
-      <p className="text-gray-600">
-        <span className="font-semibold">Created:</span>{" "}
-        {new Date(data.createdAt).toLocaleString("en-US")}
-      </p>
-      <p className="text-gray-600">
-        <span className="font-semibold">Last Updated:</span>{" "}
-        {new Date(data.date).toLocaleString("en-US")}
-      </p>
-      <p className="text-gray-600">
-        <span className="font-semibold">Status:</span>{" "}
-        <span className={`text-sm ${data.status === "completed" ? "text-green-600" : "text-red-600"}`}>
-          {data.status === "completed" ? "Completed" : "Not Completed"}
-        </span>
-      </p>
-    
       {/* Title */}
       <div>
         <label htmlFor="title" className="block font-semibold text-gray-700">
@@ -169,6 +140,7 @@ export default function EditEntry() {
           id="title"
           name="title"
           defaultValue={data.title}
+          //onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
           placeholder="Enter title"
           required
@@ -184,12 +156,40 @@ export default function EditEntry() {
           id="description"
           name="description"
           defaultValue={data.description}
+         // onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={5}
           className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
           placeholder="Enter description"
           required
         />
       </div>
+      {/* Attachments */}
+      <div className="mb-4" >
+        <h2 className="text-lg font-semibold mb-2 text-gray-800">Attachments</h2>
+        <div className='flex  justify-between items-center'>
+        <input
+          type="file"
+          id="attachment"
+          name="attachment"
+          onChange={(e) => setSelectedFile(e.target.files[0])}
+          className="border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
+          accept=".pdf,.doc,.docx,.txt,image/*,.zip,.rar"
+        />
+        <button
+        type="submit"
+        formMethod="post"
+        className={`bg-green-500 text-white rounded-md px-4 py-2 ${!selectedFile 
+        ? 'opacity-50 cursor-not-allowed' 
+        : 'hover:bg-green-600 transition duration-300'}`}     
+        // onClick={handleSave}
+        disabled={!selectedFile}
+         >
+        Save
+      </button>
+        </div>
+       
+      </div>
+
 
       {/* Buttons */}
       <div className="flex justify-end">
@@ -204,7 +204,7 @@ export default function EditEntry() {
           className="bg-blue-500 text-white rounded-md px-4 py-2 ml-3 hover:bg-blue-600 transition duration-300"
           type="submit"
           formMethod="put"
-          onClick={() => handleUpdate()}
+          onClick={() => toast.success('Updated Successfully')}
         >
           Update
         </button>
@@ -212,30 +212,29 @@ export default function EditEntry() {
       {/* Confirmation Modal */}
   {showConfirmation && (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+  
       <div className="bg-white p-6 rounded-md shadow-md">
         <p className="mb-4">Are you sure you want to delete this entry?</p>
         <div className="flex justify-end">
           <button
             className="bg-red-500 text-white rounded-md px-3 py-1 hover:bg-red-600"
             onClick={() => setShowConfirmation(false)} // Close the modal
-            //onClick={handleDeleteFeedback}
           >
             Cancel
           </button>
           <button
-            className="bg-blue-500 text-white rounded-md px-3 py-1 ml-3 hover:bg-blue-600"
-            onClick={handleDelete} // Perform the deletion action
-            //onClick={handleUpdateFeedback}
-          >
-            Confirm
-          </button>
+          className="bg-blue-500 text-white rounded-md px-3 py-1 ml-3 hover:bg-blue-600"
+          type="submit"
+          formMethod="delete"
+          onClick={() => toast.success('Delete Successfully')}
+        >Confirm</button>
         </div>
+        
       </div>
     </div>
   )}
     </Form>
   </div>
 </div>
-
   );
 }
