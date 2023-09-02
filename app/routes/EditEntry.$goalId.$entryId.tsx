@@ -1,7 +1,7 @@
 import type { LoaderFunction,ActionArgs } from '@remix-run/node';
-import { Form, useLoaderData, Link, useParams } from "@remix-run/react";
+import { Form, useLoaderData, Link, useParams, useActionData } from "@remix-run/react";
 import { json , redirect} from "@remix-run/node"; 
-import { useState } from "react";
+import { useState, createRef } from "react";
 import {toast} from 'react-hot-toast';
 
 
@@ -13,33 +13,28 @@ export let loader: LoaderFunction = async ({ params }) => {
   return entry;
 };
 
-export const action = async ({ request,params }: ActionArgs) => {
+export const action = async ({ request,params}: ActionArgs) => {
   const formData = await request.formData();
   const goalId = params.goalId; // Fetch the goal ID from params
   const entryId = params.entryId; // Fetch the entry ID from params
   const title = formData.get("title");
   const description = formData.get("description");
   const method = request.method;
-  const timeNow = new Date();
-  const files = formData.get("files");
+  const timeNow = new Date();  
+  const file = formData.get("files");
  
-  console.log(method)
   if (method === 'POST') {
-    const formData = new FormData();
-    formData.append('files', files);
-    const response = await fetch("http://localhost:8000/api/upload", {
+    const data = new FormData();
+    data.append('files', file);
+    const result = await fetch("http://localhost:8000/api/upload", {
     method: "POST",
-    body: formData})
-    //console.log(response)
-    if (response.ok) {
-    toast.success("Entry updated successfully");
-    } else {
-    toast.error("An error occurred");
+    body: data})
+    if (!result.ok) {
+    return json({ error:
+       "Something went wrong" }, { status: 500 });
     }
-    return null;
-    return null;
-  } else if (method === 'DELETE') {
-    
+    return json({ message: "ok" });
+  }else if (method === 'DELETE') {
     const result = await fetch(`http://localhost:8000/api/entries?goalID=${goalId}&entryID=${entryId}`, {
       method: 'DELETE',
       headers: {
@@ -65,7 +60,6 @@ export const action = async ({ request,params }: ActionArgs) => {
         date: timeNow,
     })
     });
-   
     if (!result.ok) {
         return json({ error: "Something went wrong" }, { status: 500 });
     }
@@ -75,32 +69,32 @@ export const action = async ({ request,params }: ActionArgs) => {
 
 export default function EditEntry() {
   const data = useLoaderData<typeof loader>();
-  // Add a new piece of state for the confirmation modal
+  const message = useActionData<typeof action>();
+  const { goalId } = useParams();
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const {goalId} = useParams()
+  const fileInputRef = createRef();
   const [selectedFile, setSelectedFile] = useState(null);
-  
-  const handleSave = async () => {
-    const formData = new FormData();
-    formData.append('files', selectedFile);
-    console.log(selectedFile)
-    const response = await fetch("http://localhost:8000/api/upload", {
-    method: "POST",
-    body: formData})
-    //console.log(response)
-    if (response.ok) {
-    toast.success("Entry updated successfully");
+
+  const handleUpload = (message: any) => {
+    if (message.message === 'ok') {
+      toast.success('Uploaded Successfully');
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current?.reset();
+      }
     } else {
-    toast.error("An error occurred");
+      toast.error(message.message);
     }
-    return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-xl mx-auto bg-white rounded-md shadow-md p-6">
         <div className="mb-6 flex items-center">
-          <Link to={`/goals/${goalId}`} className="text-blue-500 hover:underline flex items-center">
+          <Link
+            to={`/goals/${goalId}`}
+            className="text-blue-500 hover:underline flex items-center"
+          >
             <svg
               className="w-4 h-4 mr-1"
               xmlns="http://www.w3.org/2000/svg"
@@ -115,9 +109,12 @@ export default function EditEntry() {
             Back to All Entries
           </Link>
         </div>
-        <h1 className="text-3xl font-semibold mb-6 text-gray-800">Edit Learning Entry</h1>
-        <Form className="space-y-4" method="post">
-      {/* Entry Details */}
+        <h1 className="text-3xl font-semibold mb-6 text-gray-800">
+          Edit Learning Entry
+        </h1>
+        <Form className="space-y-4" method="post" encType="multipart/form-data">
+          {/* Entry Details */}
+
       {/* Title */}
       <div>
         <label htmlFor="title" className="block font-semibold text-gray-700">
@@ -150,50 +147,54 @@ export default function EditEntry() {
           required
         />
       </div>
+
       {/* Attachments */}
-      <div className="mb-4" >
-        <h2 className="text-lg font-semibold mb-2 text-gray-800">Attachments</h2>
-        <div className='flex  justify-between items-center '>
-        <input
-          type="file"
-          id="files"
-          name="files"
-          onChange={(e) => setSelectedFile(e.target.files[0])}
-          className="border rounded-md px-3 py-2 focus:outline-none focus:ring focus:border-blue-500"
-          accept=".pdf,.doc,.docx,.txt,image/*,.zip,.rar"
-        />
-        <button
-        type="submit"
-        formMethod="post"
-        className={`bg-green-500 text-white rounded-md px-4 py-2 ${!selectedFile 
-        ? 'opacity-50 cursor-not-allowed' 
-        : 'hover:bg-green-600 transition duration-300'}`}     
-          onClick={handleSave}
-        disabled={!selectedFile}
-         >
-        Save
-      </button>
-        </div>
-       
-      </div>
-
-
-      {/* Buttons */}
-      <div className="flex justify-end ">
-        <button
-          className="bg-red-500 text-white rounded-md px-4 py-2 hover:bg-red-600 transition duration-300"
-          type="button"
-          onClick={() => setShowConfirmation(true)} // Open the confirmation modal
-        >
-          Delete
-        </button>
-        <button
-          className="bg-blue-500 text-white rounded-md px-4 py-2 ml-3 hover:bg-blue-600 transition duration-300"
-          type="submit"
-          formMethod="put"
-          onClick={() => toast.success('Updated Successfully')}
-        >
-          Update
+      <div className="mb-4">
+            <h2 className="text-lg font-semibold mb-2 text-gray-800">
+              Attachments
+            </h2>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                id="files"
+                name="files"
+                multiple
+                ref={fileInputRef}
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+                className="border rounded-md p-2 focus:outline-none focus:ring focus:border-blue-500"
+                accept=".pdf,.doc,.docx,.txt,image/*,.zip,.rar"
+              />
+              <button
+                type="submit"
+                formMethod="post"
+                onClick={(e) => handleUpload(message)}
+                className={`bg-green-500 text-white rounded-md px-4 py-2 ${
+                  !selectedFile
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-green-600 transition duration-300'
+                }`}
+                disabled={!selectedFile}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+          {/* Buttons */}
+          <div className="flex justify-end space-x-2">
+            <button
+              className="bg-red-500 text-white rounded-md px-4 py-2 hover:bg-red-600 transition duration-300"
+              type="button"
+              onClick={() => setShowConfirmation(true)}
+            >
+              Delete
+            </button>
+            <button
+              className="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition duration-300"
+              type="submit"
+              formMethod="put"
+              onClick={() => toast.success('Updated Successfully')}
+            >
+              Update
         </button>
       </div>
       {/* Confirmation Modal */}
