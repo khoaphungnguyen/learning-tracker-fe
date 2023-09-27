@@ -1,5 +1,5 @@
 //import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction ,LoaderFunction} from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -16,10 +16,6 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
 ];
 
-export let loader: LoaderFunction = async () => {
-  const data = await fetch("http://localhost:8000/api/goals");
-  return data.json();
-};
 
 export default function App() {
   return (

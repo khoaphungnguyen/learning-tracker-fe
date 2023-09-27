@@ -15,4 +15,8 @@ module.exports = {
     v2_routeConvention: true,
   },
   tailwind: true,
+  serverDependenciesToBundle: [
+    /^axios.*/,
+    
+  ],
 };

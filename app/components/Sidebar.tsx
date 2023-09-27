@@ -1,20 +1,20 @@
-import { NavLink, useParams, useRouteLoaderData} from '@remix-run/react';
+import { NavLink} from '@remix-run/react';
 
 export default function Sidebar() {
-  const data = useRouteLoaderData("root");
-  const { id } = useParams();
+  // const data = useRouteLoaderData("root");
+  // const { id } = useParams();
 
-  // Check if id is defined before converting to an integer
-  let idInt: number | null = null;
-  if (id !== undefined) {
-    idInt = parseInt(id, 10);
-  }
+  // // Check if id is defined before converting to an integer
+  // let idInt: number | null = null;
+  // if (id !== undefined) {
+  //   idInt = parseInt(id, 10);
+  // }
 
   return (
     <nav className="bg-gray-800 text-white  h-screen flex flex-col">
       <div className="flex flex-col flex-grow overflow-y-auto">
         <ul className="space-y-2 m-2">
-          {data.map((goal: any) => (
+          {/* {data.map((goal: any) => (
             <li key={goal.id}>
               <NavLink
                 to={`/goals/${goal.id}`}
@@ -31,7 +31,7 @@ export default function Sidebar() {
                 </div>
               </NavLink>
             </li>
-          ))}
+          ))} */}
         </ul>
       </div>
       <div className="mt-auto my-3 mx-2">
