@@ -1,13 +1,8 @@
 import {createCookieSessionStorage, redirect } from "@remix-run/node";
 
 type SessionData = {
-  credentials: {
     token: string;
-    user: {
-      Audience: string;
-      Fullname: string;
-    };
-  };
+    refreshtoken:string;
 };
 
 type SessionFlashData = {
@@ -19,7 +14,6 @@ const { getSession, commitSession, destroySession } =
     // a Cookie from `createCookie` or the CookieOptions to create one
     cookie: {
       name: "__session",
-
       httpOnly: true,
       sameSite: "lax",
       maxAge: 60*60*24,
@@ -36,9 +30,8 @@ export async function requireUserSession(request: Request) {
     const session = await getSession(cookie);
   
     // check if session has the credentials
-    if (!session.has("credentials")) {
-      console.log(session.get("credentials"));
-  
+    if (!session.has("token")) {
+
       // if there is no user session, redirect to login
       throw redirect("/");
     }

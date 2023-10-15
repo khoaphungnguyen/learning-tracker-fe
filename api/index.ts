@@ -1,9 +1,8 @@
 import axios from "axios";
-// import { METHOD } from "types/methods";
-import { getSession } from "~/sessions";
+import { commitSession, getSession } from "~/sessions";
 
 export type LoginPayload = {
-  username: FormDataEntryValue | null;
+  email: FormDataEntryValue | null;
   password: FormDataEntryValue | null;
 };
 
@@ -16,23 +15,30 @@ const Api = class Api {
   }
 
   initializeInstance = () => {
-    let baseURL = this.baseURL;
+    const baseURL = this.baseURL;
 
     const instance = axios.create({
       baseURL,
-      withCredentials: false,
+      withCredentials: true, // Allow sending cookies
     });
 
-    instance.interceptors.request.use(
-      (config: any) => {
-        return config;
-      },
-      (error: any) => {
-        console.log(error);
+    instance.interceptors.response.use(undefined, async (error) => {
+      if (error.response?.status === 401 && !error.config._retry) {
+        error.config._retry = true;
 
-        return Promise.reject(error);
+        // Refresh the token
+        const newToken = await this.refreshToken();
+
+        if (newToken) {
+          this.token = newToken;
+
+          error.config.headers["Authorization"] = `Bearer ${newToken}`;
+          return instance(error.config);
+        }
       }
-    );
+
+      return Promise.reject(error);
+    });
 
     return instance;
   };
@@ -47,14 +53,14 @@ const Api = class Api {
   };
 
   loginUser = (payload: LoginPayload) => {
-    const url = "/auth/signin";
+    const url = "/auth/login";
     return this.publicRequest(url, "post", payload);
   };
 
   async setToken(request: Request) {
     const session = await getSession(request.headers.get("Cookie"));
-    const token = session.get("credentials")?.token;
-    this.token = token;
+    const token = session.get("token");
+    this.token = token || "";
   }
 
   authClient = (url: string, method: string, data: any) => {
@@ -81,9 +87,27 @@ const Api = class Api {
 
 
   getGoals = () => {
-    const url = "/goals";
+    const url = "/protected/goals";
     return this.authClient(url, "get", {});
   };
-};
 
+  async refreshToken() {
+    try {
+      const response = await axios.post(`${this.baseURL}/auth/refresh`);
+
+      const newToken = response.data.token;
+
+      // Update the session with the new token
+      const session = await getSession(document.cookie);
+      session.set("token", newToken);
+      const updatedCookie = await commitSession(session);
+      document.cookie = updatedCookie;
+
+      return newToken;
+    } catch (error) {
+      console.error("Error refreshing token", error);
+      return null;
+    }
+  }
+};
 export default Api;

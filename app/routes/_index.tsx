@@ -14,8 +14,6 @@ export const meta: V2_MetaFunction = () => {
 // Define a type for the decoded token
 interface DecodedToken {
   Audience: string;
-  Fullname: string;
-  // ... other fields ...
 }
 
 export async function loader({ request }: LoaderArgs) {
@@ -34,26 +32,23 @@ export async function loader({ request }: LoaderArgs) {
 export async function action({ request }: ActionArgs) {
   const session = await getSession(request.headers.get("Cookie"));
   const body = await request.formData();
-  const username = body.get("username");
+  const email = body.get("email");
   const password = body.get("password");
   const payload = {
-    username,
+    email,
     password,
   };
-
-  console.log(typeof username);
 
   const api = new Api();
   try {
     const response = await api.loginUser(payload);
     const token = response.data.token;
     const decodedToken = jwtDecode(token) as DecodedToken;
-    console.log(decodedToken);
+
     const sessionPayload = {
       token: token,
       user: {
         Audience: decodedToken.Audience,  
-        Fullname: decodedToken.Fullname,
       },
     };
     session.set("credentials", sessionPayload);
@@ -85,17 +80,27 @@ export default function Index() {
   }, [actionData]);
 
   return (
-    <div>
-      {/*   */}
-      <h2>Login</h2>
-      <Form method="post" className="flex flex-col">
-        <h2>{error}</h2>
-        <input type="text" placeholder="Username" name="username" />
-        <input type="password" placeholder="Password" name="password" />
-        <button type="submit">
-          {navigation.state === "submitting" ? "Loading..." : "Login"}
-        </button>
-      </Form>
+    <div className="min-h-screen flex justify-center items-center bg-gray-100">
+    <div className="bg-white p-8 rounded-lg shadow-md w-96">
+    
+    <h2 className="text-2xl font-semibold mb-6 text-center">Welcome to Learning Tracker</h2>
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+        <Form method="post" className="flex flex-col space-y-4"> 
+            <div className="relative"> 
+                <input type="text" placeholder="Email" name="email" className="p-2 border rounded pl-8 w-full"/>
+                <span className="absolute left-2 top-2.5">👤</span>
+            </div>
+            <div className="relative"> 
+                <input type="password" placeholder="Password" name="password" className="p-2 border rounded pl-8 w-full"/>
+                <span className="absolute left-2 top-2.5">🔒</span>
+            </div>
+            <button type="submit" className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200 w-full">
+                {navigation.state === "submitting" ? "Loading..." : "Login"}
+            </button>
+            <a href="#" className="text-sm text-blue-500 hover:text-blue-600 self-end">Forgot Password?</a>
+        </Form>
     </div>
+</div>
+
   );
 }
